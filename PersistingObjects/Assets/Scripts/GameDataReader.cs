@@ -41,7 +41,5 @@ public class GameDataReader
         value.z = reader.ReadSingle();
 
         return value;
-
-        //Continue at 3.2!!!
     }
 }
