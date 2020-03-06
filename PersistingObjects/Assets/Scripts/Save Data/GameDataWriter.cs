@@ -2,7 +2,7 @@
 using UnityEngine;
 /*
  * Basic class for writing data to a binary file.
- * if your data type isn't supported simply create a constructor for that datatype
+ * if your data type isn't supported simply create a constructor for that data type
  */
 public class GameDataWriter
 {
@@ -36,5 +36,13 @@ public class GameDataWriter
         writer.Write(value.x);
         writer.Write(value.y);
         writer.Write(value.z);
+    }
+
+    public void Write(Color value)
+    {
+        writer.Write(value.r);
+        writer.Write(value.g);
+        writer.Write(value.b);
+        writer.Write(value.a);
     }
 }

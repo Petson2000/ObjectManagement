@@ -35,7 +35,7 @@ public class Game : Shape
 
         else if(Input.GetKeyDown(saveKey))
         {
-            storage.Save(this);
+            storage.Save(this, saveVersion);
         }
 
         else if(Input.GetKeyDown(loadKey))
@@ -52,6 +52,7 @@ public class Game : Shape
         t.localPosition = Random.insideUnitSphere * 5f;
         t.localRotation = Random.rotation;
         t.localScale = Vector3.one * Random.Range(.1f, 1f);
+        instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
         shapes.Add(instance);
     }
 
@@ -67,12 +68,12 @@ public class Game : Shape
 
     public override void Save(GameDataWriter writer)
     {
-        writer.Write(-saveVersion);
         writer.Write(shapes.Count);
 
         for (int i = 0; i < shapes.Count; i++)
         {
             writer.Write(shapes[i].ShapeId); //Store shapeId 
+            writer.Write(shapes[i].MaterialId);
             shapes[i].Save(writer);
         }
     }
@@ -82,8 +83,8 @@ public class Game : Shape
         /*
          * Save version can now either be 0 or negative, if negative means we are dealing with an old save file from before shape factory support.
          */
-        int version = -reader.ReadInt();
 
+        int version = reader.Version;
 
         if(version > saveVersion) //If save version is not supported, throw error.
         {
@@ -96,7 +97,8 @@ public class Game : Shape
         for (int i = 0; i < count; i++)
         {
             int shapeId = version > 0 ? reader.ReadInt() : 0;
-            Shape instance = shapeFactory.Get(shapeId);
+            int materialId = version > 0 ? reader.ReadInt() : 0;
+            Shape instance = shapeFactory.Get(shapeId, materialId);
             instance.Load(reader);
             shapes.Add(instance);
         }
