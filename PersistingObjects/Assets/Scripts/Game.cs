@@ -6,9 +6,17 @@ public class Game : Shape
     public ShapeFactory shapeFactory;
 
     public KeyCode createkey = KeyCode.C;
+    public KeyCode destroyKey = KeyCode.X;
     public KeyCode newGameKey = KeyCode.N;
     public KeyCode saveKey = KeyCode.S;
     public KeyCode loadKey = KeyCode.L;
+
+    public float CreationSpeed { get; set; }
+
+    public float DestructionSpeed { get; set; }
+
+    float creationProgress;
+    float destructionProgress;
 
     const int saveVersion = 1;
 
@@ -28,6 +36,11 @@ public class Game : Shape
             CreateShape();
         }
 
+       else if(Input.GetKeyDown(destroyKey))
+        {
+            DestroyShape();
+        }
+
         else if(Input.GetKeyDown(newGameKey))
         {
             beginNewGame();
@@ -43,6 +56,22 @@ public class Game : Shape
             beginNewGame();
             storage.Load(this);
         }
+
+        creationProgress += Time.deltaTime * CreationSpeed;
+
+        while(creationProgress >= 1f)
+        {
+            creationProgress -= 1f;
+            CreateShape();
+        }
+
+        destructionProgress += Time.deltaTime * DestructionSpeed;
+
+        while(destructionProgress >= 1f)
+        {
+            destructionProgress -= 1f;
+            DestroyShape();
+        }
     }
 
     void CreateShape()
@@ -56,11 +85,23 @@ public class Game : Shape
         shapes.Add(instance);
     }
 
+    void DestroyShape()
+    {
+        if(shapes.Count > 0)
+        {
+            int index = Random.Range(0, shapes.Count); //Pick random index of shapes to destroy
+            shapeFactory.Reclaim(shapes[index]);
+            int lastIndex = shapes.Count - 1;
+            shapes[index] = shapes[lastIndex];
+            shapes.RemoveAt(lastIndex); 
+        }
+    }
+
     void beginNewGame()
     {
         for (int i = 0; i < shapes.Count; i++)
         {
-            Destroy(shapes[i].gameObject);
+            shapeFactory.Reclaim(shapes[i]);
         }
 
         shapes.Clear();
