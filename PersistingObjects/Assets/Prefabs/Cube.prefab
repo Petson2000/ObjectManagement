@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3818491827599546849}
   - component: {fileID: 8345824429163952120}
   - component: {fileID: 7940547764673175721}
-  - component: {fileID: 4485657293579300974}
+  - component: {fileID: -8850274969934296975}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -56,6 +56,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -93,7 +94,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4485657293579300974
+--- !u!114 &-8850274969934296975
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -102,6 +103,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 8606159535286584307}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24fcde011370e3d42ab4c1a5dcfa46e5, type: 3}
+  m_Script: {fileID: 11500000, guid: e07e29bf220030a4db7a9409b8a5a0ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
