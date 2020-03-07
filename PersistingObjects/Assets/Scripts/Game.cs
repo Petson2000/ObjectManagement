@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class Game : Shape
 {
     public ShapeFactory shapeFactory;
@@ -24,9 +25,21 @@ public class Game : Shape
 
     public PersistentStorage storage;
 
-    void Awake()
+    void Start()
     {
         shapes = new List<Shape>();
+
+        if(Application.isEditor)
+        {
+            Scene loadedLevel = SceneManager.GetSceneByName("Scene 1");
+            if (loadedLevel.isLoaded)
+            {
+                SceneManager.SetActiveScene(loadedLevel);
+                return;
+            }
+
+            StartCoroutine(LoadLevel());
+        }
     }
 
     void Update()
@@ -95,6 +108,13 @@ public class Game : Shape
             shapes[index] = shapes[lastIndex];
             shapes.RemoveAt(lastIndex); 
         }
+    }
+
+    IEnumerator LoadLevel()
+    {
+        yield return SceneManager.LoadSceneAsync("Scene 1", LoadSceneMode.Additive); //Async loading
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName("Scene 1"));
+        enabled = true;
     }
 
     void beginNewGame()
