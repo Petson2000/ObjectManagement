@@ -14,6 +14,10 @@ public class Game : Shape
 
     public PersistentStorage storage;
 
+    public SpawnZone spawnZoneOfLevel { get; set; }
+
+    public static Game Instance { get; private set; }
+
     public int levelCount;
     public float CreationSpeed { get; set; }
     public float DestructionSpeed { get; set; }
@@ -26,6 +30,11 @@ public class Game : Shape
     const int saveVersion = 2;
 
     List<Shape> shapes;
+
+    void OnEnable()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
@@ -109,7 +118,7 @@ public class Game : Shape
     {
         Shape instance = shapeFactory.GetRandom();
         Transform t = instance.transform;
-        t.localPosition = Random.insideUnitSphere * 5f;
+        t.localPosition = spawnZoneOfLevel.SpawnPoint;
         t.localRotation = Random.rotation;
         t.localScale = Vector3.one * Random.Range(.1f, 1f);
         instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
