@@ -12,18 +12,20 @@ public class Game : Shape
     public KeyCode saveKey = KeyCode.S;
     public KeyCode loadKey = KeyCode.L;
 
-    public float CreationSpeed { get; set; }
+    public PersistentStorage storage;
 
+    public int levelCount;
+    public float CreationSpeed { get; set; }
     public float DestructionSpeed { get; set; }
 
     float creationProgress;
     float destructionProgress;
 
-    const int saveVersion = 1;
+    int loadedLevelBuildIndex;
+
+    const int saveVersion = 2;
 
     List<Shape> shapes;
-
-    public PersistentStorage storage;
 
     void Start()
     {
@@ -31,14 +33,17 @@ public class Game : Shape
 
         if(Application.isEditor)
         {
-            Scene loadedLevel = SceneManager.GetSceneByName("Scene 1");
-            if (loadedLevel.isLoaded)
+            for (int i = 0; i < SceneManager.sceneCount;i++)
             {
-                SceneManager.SetActiveScene(loadedLevel);
-                return;
+                Scene loadedScene = SceneManager.GetSceneAt(i);
+                if (loadedScene.name.Contains("Scene 1"))
+                {
+                    SceneManager.SetActiveScene(loadedScene);
+                    loadedLevelBuildIndex = loadedScene.buildIndex;
+                    return;
+                }
             }
-
-            StartCoroutine(LoadLevel());
+            StartCoroutine(LoadLevel(1));
         }
     }
 
@@ -68,6 +73,19 @@ public class Game : Shape
         {
             beginNewGame();
             storage.Load(this);
+        }
+
+        else
+        {
+            for (int i = 1; i <= levelCount; i++)
+            {
+                if(Input.GetKeyDown(KeyCode.Alpha0 + i))
+                {
+                    beginNewGame();
+                    StartCoroutine(LoadLevel(i));
+                    return;
+                }
+            }
         }
 
         creationProgress += Time.deltaTime * CreationSpeed;
@@ -110,10 +128,17 @@ public class Game : Shape
         }
     }
 
-    IEnumerator LoadLevel()
+    IEnumerator LoadLevel(int levelBuildIndex)
     {
-        yield return SceneManager.LoadSceneAsync("Scene 1", LoadSceneMode.Additive); //Async loading
-        SceneManager.SetActiveScene(SceneManager.GetSceneByName("Scene 1"));
+        enabled = false;
+
+        if(loadedLevelBuildIndex > 0)
+        {
+            yield return SceneManager.UnloadSceneAsync(loadedLevelBuildIndex);
+        }
+
+        yield return SceneManager.LoadSceneAsync(levelBuildIndex, LoadSceneMode.Additive); //Async loading
+        SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(levelBuildIndex));
         enabled = true;
     }
 
@@ -130,6 +155,7 @@ public class Game : Shape
     public override void Save(GameDataWriter writer)
     {
         writer.Write(shapes.Count);
+        writer.Write(loadedLevelBuildIndex);
 
         for (int i = 0; i < shapes.Count; i++)
         {
@@ -154,6 +180,7 @@ public class Game : Shape
         }
 
         int count = version <= 0 ? -version : reader.ReadInt();
+        StartCoroutine(LoadLevel(version < 2 ? 1 : reader.ReadInt()));
 
         for (int i = 0; i < count; i++)
         {

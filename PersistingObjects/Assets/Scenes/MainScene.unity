@@ -1330,6 +1330,7 @@ MonoBehaviour:
   saveKey: 115
   loadKey: 108
   storage: {fileID: 1962235481}
+  levelCount: 3
 --- !u!1 &2100383357
 GameObject:
   m_ObjectHideFlags: 0
