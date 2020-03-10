@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class Game : Shape
 {
-    public ShapeFactory shapeFactory;
+    [SerializeField]ShapeFactory shapeFactory;
 
     public KeyCode createkey = KeyCode.C;
     public KeyCode destroyKey = KeyCode.X;
@@ -12,13 +12,13 @@ public class Game : Shape
     public KeyCode saveKey = KeyCode.S;
     public KeyCode loadKey = KeyCode.L;
 
-    public PersistentStorage storage;
+    [SerializeField]PersistentStorage storage;
 
     public SpawnZone spawnZoneOfLevel { get; set; }
 
     public static Game Instance { get; private set; }
 
-    public int levelCount;
+    [SerializeField] int levelCount;
     public float CreationSpeed { get; set; }
     public float DestructionSpeed { get; set; }
 
@@ -27,7 +27,7 @@ public class Game : Shape
 
     int loadedLevelBuildIndex;
 
-    const int saveVersion = 2;
+    [SerializeField]const int saveVersion = 2;
 
     List<Shape> shapes;
 
@@ -52,6 +52,7 @@ public class Game : Shape
                     return;
                 }
             }
+
             StartCoroutine(LoadLevel(1));
         }
     }
