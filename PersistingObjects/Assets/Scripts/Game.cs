@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 public class Game : Shape
 {
     [SerializeField]ShapeFactory shapeFactory;
@@ -14,9 +15,10 @@ public class Game : Shape
 
     [SerializeField]PersistentStorage storage;
 
-    public SpawnZone spawnZoneOfLevel { get; set; }
+    [SerializeField] Slider creationSpeedSlider;
+    [SerializeField] Slider destructionSpeedSlider;
 
-    public static Game Instance { get; private set; }
+    [SerializeField] bool reseedOnLoad;
 
     [SerializeField] int levelCount;
     public float CreationSpeed { get; set; }
@@ -27,17 +29,16 @@ public class Game : Shape
 
     int loadedLevelBuildIndex;
 
-    [SerializeField]const int saveVersion = 2;
+    Random.State mainRandomState;
+
+    [SerializeField]const int saveVersion = 3;
 
     List<Shape> shapes;
 
-    void OnEnable()
-    {
-        Instance = this;
-    }
-
     void Start()
     {
+        mainRandomState = Random.state;
+
         shapes = new List<Shape>();
 
         if(Application.isEditor)
@@ -52,6 +53,8 @@ public class Game : Shape
                     return;
                 }
             }
+
+            beginNewGame();
 
             StartCoroutine(LoadLevel(1));
         }
@@ -72,6 +75,7 @@ public class Game : Shape
         else if(Input.GetKeyDown(newGameKey))
         {
             beginNewGame();
+            StartCoroutine(LoadLevel(loadedLevelBuildIndex));
         }
 
         else if(Input.GetKeyDown(saveKey))
@@ -97,10 +101,13 @@ public class Game : Shape
                 }
             }
         }
+    }
 
+    private void FixedUpdate()
+    {
         creationProgress += Time.deltaTime * CreationSpeed;
 
-        while(creationProgress >= 1f)
+        while (creationProgress >= 1f)
         {
             creationProgress -= 1f;
             CreateShape();
@@ -108,7 +115,7 @@ public class Game : Shape
 
         destructionProgress += Time.deltaTime * DestructionSpeed;
 
-        while(destructionProgress >= 1f)
+        while (destructionProgress >= 1f)
         {
             destructionProgress -= 1f;
             DestroyShape();
@@ -119,7 +126,7 @@ public class Game : Shape
     {
         Shape instance = shapeFactory.GetRandom();
         Transform t = instance.transform;
-        t.localPosition = spawnZoneOfLevel.SpawnPoint;
+        t.localPosition = GameLevel.Current.SpawnPoint;
         t.localRotation = Random.rotation;
         t.localScale = Vector3.one * Random.Range(.1f, 1f);
         instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
@@ -154,6 +161,16 @@ public class Game : Shape
 
     void beginNewGame()
     {
+        Random.state = mainRandomState;
+        int seed = Random.Range(0, int.MaxValue) ^ (int)Time.unscaledDeltaTime; //Randomization
+        mainRandomState = Random.state;
+        Random.InitState(seed);
+
+        CreationSpeed = 0;
+        creationSpeedSlider.value = 0;
+        DestructionSpeed = 0;
+        destructionSpeedSlider.value = 0;
+
         for (int i = 0; i < shapes.Count; i++)
         {
             shapeFactory.Reclaim(shapes[i]);
@@ -165,7 +182,14 @@ public class Game : Shape
     public override void Save(GameDataWriter writer)
     {
         writer.Write(shapes.Count);
+        writer.Write(Random.state);
+        writer.Write(CreationSpeed);
+        writer.Write(creationProgress);
+        writer.Write(DestructionSpeed);
+        writer.Write(destructionProgress);
         writer.Write(loadedLevelBuildIndex);
+
+        GameLevel.Current.Save(writer); 
 
         for (int i = 0; i < shapes.Count; i++)
         {
@@ -183,14 +207,43 @@ public class Game : Shape
 
         int version = reader.Version;
 
-        if(version > saveVersion) //If save version is not supported, throw error.
+        if (version > saveVersion) //If save version is not supported, throw error.
         {
             Debug.LogError("Unsupported future save version " + version);
             return;
         }
 
+        StartCoroutine(LoadGame(reader));
+    }
+
+    IEnumerator LoadGame(GameDataReader reader)
+    {
+        int version = reader.Version;
+
         int count = version <= 0 ? -version : reader.ReadInt();
-        StartCoroutine(LoadLevel(version < 2 ? 1 : reader.ReadInt()));
+
+        if (version >= 3)
+        {
+            Random.State state = reader.ReadRandomState();
+            if (!reseedOnLoad)
+            {
+                Random.state = state;
+            }
+        }
+
+        CreationSpeed = reader.ReadFloat();
+        creationSpeedSlider.value = CreationSpeed = reader.ReadFloat();
+        creationProgress = reader.ReadFloat();
+        destructionSpeedSlider.value = DestructionSpeed = reader.ReadFloat();
+        DestructionSpeed = reader.ReadFloat();
+        destructionProgress = reader.ReadFloat();
+
+        yield return LoadLevel(version < 2 ? 1 : reader.ReadInt());
+
+        if(version >= 3)
+        {
+            GameLevel.Current.Load(reader);
+        }
 
         for (int i = 0; i < count; i++)
         {

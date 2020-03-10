@@ -1331,6 +1331,9 @@ MonoBehaviour:
   saveKey: 115
   loadKey: 108
   storage: {fileID: 1962235481}
+  creationSpeedSlider: {fileID: 1851912078}
+  destructionSpeedSlider: {fileID: 1488259517}
+  reseedOnLoad: 1
   levelCount: 3
 --- !u!1 &2100383357
 GameObject:
