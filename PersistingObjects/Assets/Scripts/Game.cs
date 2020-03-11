@@ -31,7 +31,7 @@ public class Game : Shape
 
     Random.State mainRandomState;
 
-    [SerializeField]const int saveVersion = 3;
+    [SerializeField]const int saveVersion = 4;
 
     List<Shape> shapes;
 
@@ -105,6 +105,12 @@ public class Game : Shape
 
     private void FixedUpdate()
     {
+        for (int i = 0; i < shapes.Count; i++)
+        {
+            shapes[i].GameUpdate();
+        }
+
+
         creationProgress += Time.deltaTime * CreationSpeed;
 
         while (creationProgress >= 1f)
@@ -130,6 +136,8 @@ public class Game : Shape
         t.localRotation = Random.rotation;
         t.localScale = Vector3.one * Random.Range(.1f, 1f);
         instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
+        instance.angularVelocity = Random.onUnitSphere * Random.Range(0f, 90f);
+        instance.velocity = Random.onUnitSphere * Random.Range(0f, 2f);
         shapes.Add(instance);
     }
 

@@ -11,10 +11,20 @@ public class Shape : PersistableObject
     static MaterialPropertyBlock sharedPropertyBlock;
 
     MeshRenderer meshRenderer;
+
+    public Vector3 angularVelocity { get; set; }
+
+    public Vector3 velocity { get; set; }
     
     void Awake()
     {
         meshRenderer = GetComponent<MeshRenderer>();    
+    }
+
+    public void GameUpdate()
+    {
+        transform.Rotate(angularVelocity * Time.deltaTime);
+        transform.localPosition += velocity * Time.deltaTime;
     }
 
     public int ShapeId
@@ -65,12 +75,16 @@ public class Shape : PersistableObject
     {
         base.Save(writer);
         writer.Write(color);
+        writer.Write(angularVelocity);
+        writer.Write(velocity);
     }
 
     public override void Load(GameDataReader reader)
     {
         base.Load(reader);
         SetColor(reader.Version > 0 ? reader.ReadColor() : Color.white);
+        angularVelocity = reader.Version >= 4 ? reader.ReadVector3() : Vector3.zero;
+        velocity = reader.Version >= 4 ? reader.ReadVector3() : Vector3.zero;
     }
 
 }
